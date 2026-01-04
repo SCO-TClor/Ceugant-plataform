@@ -1,4 +1,5 @@
 docs/database/
+docs/project.md
 node_modules/
 .env
 tsconfig.json

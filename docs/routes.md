@@ -1,3 +1,8 @@
+### Para você aí que está lendo:
+<div align="center">
+Absolutamente todo o código foi criado manualmente por mim, no intuito de me dar o conhecimento necessário para poder desenvolver aplicações de forma independente e evoluir dentro da área da tecnologia, tanto frontend quanto backend.
+</div>
+
 ##### Documentação básica:
  - ***Clientes*** = pessoas que pagam pela minha plataforma SaaS para terem minha API para alimentar a loja online delas
  - ***Usuários*** = Clientes dos meus **Clientes** (que vou tentar pegar uma porcentagemzinha boba também 😝 por volta de 1% SE DER)
