@@ -1,0 +1,4 @@
+- [ ] Terminar o sistema de middleware
+- [ ] Implementar caminho do refresh
+- [ ] Concluir refresh do banco de dados
+- [ ] criar método de verificação de email

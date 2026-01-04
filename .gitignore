@@ -1,0 +1,6 @@
+docs/database/
+node_modules/
+.env
+tsconfig.json
+dist/
+svg.html
