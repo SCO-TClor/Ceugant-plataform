@@ -1,19 +1,18 @@
 import * as http from "http";
 import app from "./app";
-import { emailVerifier, generateSecureToken } from "./utils/emailSender";
-import { randomBytes } from "crypto";
-import { getUsers } from "./data/databaseCtrl";
+// import { emailVerifier, generateSecureToken } from "./utils/emailSender";
+// import { getUsers } from "./data/databaseCtrl";
 
 // nome: Ceugant
 
 const debug = true;
 const porta = Number(process.env.SERVER_PORT);
 const allowedOrigins = {
-    plataform: "http://127.0.0.1:5500",
-    clients  : "http://localhost:4000"
+    plataform: process.env.ALLOWED_ORIGIN_PLATAFORM || '',
+    clients  : process.env.ALLOWED_ORIGIN_CLIENTS || ''
 };
 
-
+ 
 const server = http.createServer( async (
     req: http.IncomingMessage,
     res: http.ServerResponse
@@ -21,9 +20,6 @@ const server = http.createServer( async (
     let step = 0;
     const request = req.url || '/';
     const routes = request.split('/').filter(Boolean) || [''];
-    
-    // generateSecureToken();
-    await getUsers(debug, step);
 
     const data = new Date().toISOString();
 
@@ -34,11 +30,6 @@ const server = http.createServer( async (
     if(debug) console.log(`Req.url | > ${request} <`);
     if(debug) console.log(`Pieces  | >`, routes ,`<`);
     step++;
-
-    
-    // await emailVerifier('Pedro', 'pedrototosinho@gmail.com', '123-983', debug);
-    // await emailVerifier('Luan Valente', 'luanvts20@gmail.com', '198-534', debug);
-    // await emailVerifier('Maria Clara', 'luanvts20@gmail.com', '198-534', debug);
     
     await app(req, res, allowedOrigins, routes, debug, step);
 });

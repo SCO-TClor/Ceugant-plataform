@@ -1,6 +1,6 @@
-import { findUser, getProfile } from "../../data/databaseCtrl";
+import { getProfile } from "../../data/databaseCtrl";
 import * as bcrypt from 'bcrypt';
-import { LoginData, SignUpData } from "../../utils/httpInterface";
+import { LoginData } from "../../utils/httpInterface";
 import * as jwt from 'jsonwebtoken';
 
 async function loginService(
@@ -31,7 +31,6 @@ async function loginService(
         };
         
         console.log(profile);
-        console.log('tá certinho? |', isValid);
 
         const token = jwt.sign(
             { 
