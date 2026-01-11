@@ -1,48 +1,51 @@
 import * as http from 'http';
-import plataformRouter from './plataform/router/plataform.route';
-import { StatusCode } from './utils/headWriter';
+import platformRouter from './platform/router/platform.route';
+import { StatusCode } from './@types/headWriter';
+import CORS_validator from './middleware/corsValidation';
+import { errorNotFound } from './utils/endPoints';
 
 async function app(
     req: http.IncomingMessage, 
     res: http.ServerResponse,
     allowedOrigins: {
-        plataform: string,
+        platform: string,
         clients: string
     },
-    routes: Array<string>,
+    newURL: URL,
     debug: boolean,
     step: number
 ) {
+    const request = newURL.pathname;
+    const routes = request.split('/').filter(Boolean);
+
     if(debug) console.log('');
     if(debug) console.log('>-----------> app.ts <------------<');
     if(debug) console.log(`Step    | ${step}`);
+    if(debug) console.log(`Req.url | > ${request} <`);
+    if(debug) console.log(`Pieces  | >`, routes ,`<`);
     step++;
 
     try {
         const keys = Object.keys(allowedOrigins);
         const values = Object.values(allowedOrigins);
 
+        if(CORS_validator(req, res, allowedOrigins, debug)) return;
+
         switch (routes.shift()) {
-            case keys[0]:
+            case 'platform':
                 if(debug) console.log('Destiny |', keys[0]);
                 
-                await plataformRouter(req, res, routes, debug, step);
+                await platformRouter(req, res, routes, debug, step);
 
                 break;
-            case keys[1]:
+            case 'clients':
                 if(debug) console.log('Destiny |', keys[1]);
 
                 break;
             default:
-                console.log('Erro    | Origem não permitida!');
+                console.log('Erro    | Origem encontrada!');
                 console.log(`Allowed | ${values}`);
-                res.writeHead(StatusCode.Unauthorized, { 'content-type': 'application/json'});
-                res.write(JSON.stringify({
-                    status: 'error',
-                    code: `${StatusCode.Unauthorized}, Unauthorized`,
-                    message: 'Unauthorized URL origin!'
-                }));
-                res.end();
+                errorNotFound(res, 'Origin NotFound', 'Origin designation wasn\'t expected!', debug, step);
                 break;
         };
     } catch (err) {

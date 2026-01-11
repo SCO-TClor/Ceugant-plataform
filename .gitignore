@@ -1,7 +1,8 @@
 docs/database/
 docs/project.md
 node_modules/
-.env
+/.env
 tsconfig.json
 dist/
 svg.html
+src/agora.md

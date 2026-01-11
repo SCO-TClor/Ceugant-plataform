@@ -12,18 +12,19 @@ function emailSetup() {
     return transporter;
 }
 
-export async function emailPasswordReset() {
-    const transporter = emailSetup();
-    // implementar depois
+async function emailPasswordReset() { // implementar depois
+    const transporter = emailSetup(); 
 }
 
-export async function emailVerifier(
+async function emailVerifier(
     user: string, 
     email: string, 
-    token: string | number,
+    token: string,
     debug: boolean
 ) {
     console.log('Creating email...');
+    const apiGoal = process.env.SERVER_ADDRESS || '';
+    const apiRout = apiGoal.concat(`/platform/auth/verify?token=${token}&email=${email}`)
 
     const transporter = emailSetup();
     
@@ -84,7 +85,7 @@ export async function emailVerifier(
                                     </p>
                                     
                                     <!-- CTA Button -->
-                                    <a href="http://localhost:4000/verify?token=${token}" 
+                                    <a href="${apiRout}" 
                                        style="display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #00f2ff 0%, #00d4ff 100%); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 20px 0; transition: transform 0.2s;">
                                         ✓ Ativar Conta Agora
                                     </a>
@@ -130,11 +131,14 @@ export async function emailVerifier(
     
     console.log('Sending email...');
     await transporter.sendMail(mailOptions);
-    if(debug) console.log(`Email sender for ${user} / ${email}`);
-}
+    if(debug) console.log(`Email sended for ${user} / ${email}`);
+    return true;
+};
 
-export function generateSecureToken() {
+function generateSecureToken() {
     const randomToken = randomBytes(32).toString('hex');
 
     return randomToken;
 };
+
+export { emailVerifier };

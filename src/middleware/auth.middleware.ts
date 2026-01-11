@@ -1,9 +1,25 @@
 import * as http from 'http';
 import * as jwt from 'jsonwebtoken';
-import { StatusCode } from '../utils/headWriter';
 import * as erro from '../utils/endPoints';
+import { HttpError } from '../utils/ThrowError';
+import { StatusCode } from '../@types/headWriter';
+import { getTenant, getTenantUser } from '../data/databaseProducts';
+import { tenant_users } from '../data/database/databaseEnum';
+import { codeCase } from '../utils/endPoints';
 
-function authMiddleware(
+interface JwtPayload {
+    userId: string,
+    email: string
+};
+
+interface tenantUser {
+    tenant_id: string,
+    role: string
+};
+
+interface middleware extends JwtPayload, tenantUser {};
+
+async function authMiddleware(
     req: http.IncomingMessage,
     res: http.ServerResponse,
     debug: boolean,
@@ -15,32 +31,55 @@ function authMiddleware(
     step++;
 
     try {
-        const Authorization = req.headers.authorization || '';
-        const splitted = Authorization.split(' ').filter(Boolean);
+        const cookie = req.headers.cookie || '';
         const secret = process.env.JWT_SECRET || '';
 
-        if(Authorization === '') {
+        let Auth: {
+            [key :string]: string
+        } = {};
+
+        const m = cookie.split(';');
+        Auth = m.reduce((obj, current) => {
+            const [ chave, valor ] = current.split('=');
+            obj[chave.trim()] = valor.trim();
+            return obj;
+        }, Auth);
+
+        if(!Auth.access_cookie) {
             console.log('JWT TOKEN NÃO EXISTE!');
-            erro.errorUnauthorized(res, 'Token missing', 'Authorization header not provided', debug, step);
-            return null;
-        } else if(splitted[0] !== 'Bearer') {
-            console.log('Tipo de token inválido!');
-            erro.errorUnauthorized(res, 'wrong token typeof', 'Authorization header not provided', debug, step);
-            return null;
+            codeCase(res, 'AUTH_006', debug, step);
+            return false;
         };
+
         if(secret === '') {
             console.log('Secret não capturada pelo .env');
             console.log('Server side erro');
-            return null;
+            return false;
         };
         
-        const auth = jwt.verify(splitted[1], secret);
-        
-        return auth;
+        const payload = jwt.verify(Auth.access_cookie, secret) as JwtPayload;
+        const tenant: tenant_users = await getTenantUser(payload.userId, debug, step);
+        console.log('Tenant infos:', tenant);
+
+        req.user = {
+            user_id: payload.userId,
+            email: payload.email,
+            tenant_id: tenant.tenant_id,
+            role: tenant.role
+        };
+
+        console.log(req.user);
+
+        return true;
     } catch (error) {
+        if(error instanceof HttpError) {
+            if(debug) console.log('Erro ao procurar tenant no database');
+            erro.errorNotFound(res, 'tenant_id NotFound', 'Tenant não encontrado no banco de dados', debug, step);
+            return false;
+        };
         console.log('JWT expired');
-        erro.errorUnauthorized(res, 'JWT expired', 'JWT não autorizado no middleware', debug, step);
-        return null;
+        codeCase(res, 'AUTH_007', debug, step);
+        return false;
     };
 };
 

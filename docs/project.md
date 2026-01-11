@@ -11,4 +11,14 @@ test: testes
 chore: tarefas gerais
 ```
 
----
+## Rotas e request fields:
+- login:
+  - "email"
+  - "password"
+- signup:
+  - "name"
+  - "email"
+  - "password"
+- send-verification:
+  - "email"
+  - "password"

@@ -9,8 +9,4 @@ const pool = new Pool({
     database: process.env.DB_DATABASE
 });
 
-export enum table {
-    users = "plataform.users"
-}
-
 export default pool;

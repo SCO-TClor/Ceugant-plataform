@@ -1,37 +1,35 @@
 import * as http from "http";
 import app from "./app";
-// import { emailVerifier, generateSecureToken } from "./utils/emailSender";
-// import { getUsers } from "./data/databaseCtrl";
+import { getProfile, getUsers } from "./data/databaseAuth";
 
 // nome: Ceugant
 
 const debug = true;
 const porta = Number(process.env.SERVER_PORT);
 const allowedOrigins = {
-    plataform: process.env.ALLOWED_ORIGIN_PLATAFORM || '',
+    platform: process.env.ALLOWED_ORIGIN_PLATFORM || '',
     clients  : process.env.ALLOWED_ORIGIN_CLIENTS || ''
 };
 
- 
+
 const server = http.createServer( async (
     req: http.IncomingMessage,
     res: http.ServerResponse
 ) => {
     let step = 0;
-    const request = req.url || '/';
-    const routes = request.split('/').filter(Boolean) || [''];
-
+    const newURL = new URL(req.url || '/', process.env.SERVER_ADDRESS);
     const data = new Date().toISOString();
-
+    
     if(debug) console.log('<--------------------------------->');
     if(debug) console.log('<----------< server.ts >---------->');
     if(debug) console.log(`Date    | ${data}`);
-    if(debug) console.log(`Step    | ${step}`);
-    if(debug) console.log(`Req.url | > ${request} <`);
-    if(debug) console.log(`Pieces  | >`, routes ,`<`);
+    if(debug) console.log(`Method  | ${req.method}`);
+    
     step++;
     
-    await app(req, res, allowedOrigins, routes, debug, step);
+    console.log(newURL);
+    await app(req, res, allowedOrigins, newURL, debug, step);
+    // await getUsers(debug, step); // (isso aqui é para debug meu clark!)
 });
 
 server.listen(porta, () => {
