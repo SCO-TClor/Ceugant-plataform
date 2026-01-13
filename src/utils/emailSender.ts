@@ -12,6 +12,138 @@ function emailSetup() {
     return transporter;
 }
 
+async function emailInternalServerError(
+    problem: string,
+    funcao: string,
+    step: number,
+    debug: boolean
+) {
+    console.log('Creating error email...');
+    
+    const transporter = emailSetup();
+    const timestamp = new Date().toLocaleString('pt-BR', { 
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: "scotclor@gmail.com",
+        subject: `🚨 INTERNAL SERVER ERROR - ${funcao}`,
+        text: `ERRO INTERNO NO SERVIDOR\n\nFunção: ${funcao}\nStep: ${step}\nProblema: ${problem}\nData/Hora: ${timestamp}`,
+        html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <table width="100%" style="background-color: #f5f5f5; padding: 40px 0;">
+                <tr>
+                    <td align="center">
+                        <table width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); overflow: hidden;" cellpadding="0" cellspacing="0">
+                            <!-- Header com alerta -->
+                            <tr>
+                                <td style="padding: 30px; background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%); text-align: center;">
+                                    <div style="font-size: 48px; margin-bottom: 10px;">🚨</div>
+                                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                                        Internal Server Error
+                                    </h1>
+                                </td>
+                            </tr>
+
+                            <!-- Timestamp -->
+                            <tr>
+                                <td style="padding: 20px 30px; background-color: #fff3cd; border-left: 4px solid #ffc107;">
+                                    <p style="margin: 0; color: #856404; font-size: 14px;">
+                                        <strong>📅 Data/Hora:</strong> ${timestamp}
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Informações do Erro -->
+                            <tr>
+                                <td style="padding: 30px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <!-- Função -->
+                                        <tr>
+                                            <td style="padding: 15px; background-color: #f8f9fa; border-left: 4px solid #007bff; margin-bottom: 15px;">
+                                                <p style="margin: 0 0 5px 0; color: #666; font-size: 12px; text-transform: uppercase; font-weight: 600;">
+                                                    Função
+                                                </p>
+                                                <p style="margin: 0; color: #212529; font-size: 16px; font-family: 'Courier New', monospace; font-weight: 700;">
+                                                    ${funcao}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Step -->
+                                        <tr>
+                                            <td style="padding: 15px; background-color: #f8f9fa; border-left: 4px solid #6c757d; margin-top: 15px;">
+                                                <p style="margin: 0 0 5px 0; color: #666; font-size: 12px; text-transform: uppercase; font-weight: 600;">
+                                                    Step
+                                                </p>
+                                                <p style="margin: 0; color: #212529; font-size: 20px; font-weight: 700;">
+                                                    #${step}
+                                                </p>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Problema -->
+                                        <tr>
+                                            <td style="padding: 15px; background-color: #fff5f5; border-left: 4px solid #dc3545; margin-top: 15px;">
+                                                <p style="margin: 0 0 8px 0; color: #721c24; font-size: 12px; text-transform: uppercase; font-weight: 600;">
+                                                    ⚠️ Descrição do Problema
+                                                </p>
+                                                <p style="margin: 0; color: #721c24; font-size: 15px; line-height: 1.6; white-space: pre-wrap; font-family: 'Courier New', monospace;">
+                                                    ${problem}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Divisor -->
+                            <tr>
+                                <td style="padding: 0 30px;">
+                                    <hr style="border: none; border-top: 2px solid #e9ecef; margin: 0;">
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="padding: 25px 30px; background-color: #f8f9fa; text-align: center;">
+                                    <p style="margin: 0; color: #6c757d; font-size: 13px;">
+                                        Este é um email automático do sistema de monitoramento
+                                    </p>
+                                    <p style="margin: 10px 0 0 0; color: #adb5bd; font-size: 12px;">
+                                        MarketAPI Error Logger | © 2025
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>`
+    }
+    
+    console.log('Sending error email...');
+    await transporter.sendMail(mailOptions);
+    if(debug) console.log(`Error email sent to scotclor@gmail.com`);
+    return;
+};
+
+export { emailInternalServerError };
+
 async function emailPasswordReset() { // implementar depois
     const transporter = emailSetup(); 
 }

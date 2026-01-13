@@ -2,7 +2,6 @@ import * as http from 'http';
 import { debuggerController } from '../../utils/debuggers';
 import { usersDatabase } from '../../@types/httpInterface';
 import { getProfileById } from '../../data/databaseAuth';
-import { insertProduct } from '../../data/databaseProducts';
 import { dataDrain } from '../../utils/dataDrainer';
 import { insertInterface } from '../../@types/payload';
 import { codeCase } from '../../utils/endPoints';

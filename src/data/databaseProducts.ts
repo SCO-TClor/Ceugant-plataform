@@ -17,28 +17,28 @@ function debuggerDatabase(
     step++;
 };
 
-async function getProducts(
+async function getProductById(
+    product_id: number,
     tenant_id: string,
     debug: boolean,
     step: number
 ) {
-    debuggerDatabase('getProducts()', debug, step);
+    debuggerDatabase('getProductById()', debug, step);
 
     try {
-        const response = await pool.query(`SELECT * FROM ${tables.products} WHERE tenant_id = $1;`,
-            [tenant_id]
+        const response = await pool.query(`
+            SELECT * FROM ${tables.products}
+            WHERE id = $1 
+              AND tenant_id = $2;`,
+            [product_id, tenant_id]
         );
         
-        if(response.rowCount === 0) {
-            throw new Error('No rows finded!!');
-        };
-
         return response.rows[0];
 
     } catch (error) {
-        if(debug) console.log('Erro ao procurar produtos no database:', error);
-        const info = 'getProducts()';
-        const message = 'Error trying to find products into the database';
+        if(debug) console.log('Erro ao procurar produto específico no database:', error);
+        const info = 'getProductById()';
+        const message = 'Error trying to find product by id in the database';
         throw new HttpError(StatusCode.NotFound, info, message, step);
     };
 };
@@ -73,41 +73,6 @@ async function findProduct(
         if(debug) console.log('Erro ao procurar produto no database:', error);
         const info = 'findProduct()';
         const message = 'Error trying to find product in the database';
-        throw new HttpError(StatusCode.NotFound, info, message, step);
-    };
-};
-
-async function insertProduct(
-    tenant_id: string,
-    title: string,
-    price: number,
-    debug: boolean,
-    step: number,
-    image_src?: string | null,
-    description?: string | null,
-    seoT?: string | null,
-) {
-    debuggerDatabase('insertProduct()', debug, step);
-
-    try {
-
-        const img = image_src ?? null;
-        const desc = description ?? null;
-        const seo = seoT ?? null;
-
-        const response = await pool.query(`
-            INSERT INTO ${tables.products} (tenant_id, title, price, image_src, description, seo)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING *;`,
-            [tenant_id, title, price, img, desc, seo]
-        );
-
-        return response.rows[0];
-
-    } catch (error) {
-        if(debug) console.log('Erro ao inserir produto no database:', error);
-        const info = 'insertProduct()';
-        const message = 'Error trying to insert product into the database';
         throw new HttpError(StatusCode.NotFound, info, message, step);
     };
 };
@@ -173,4 +138,122 @@ async function getTenantUser(
     };
 };
 
-export { getProducts, insertProduct, getTenant, getTenantUser, findProduct }
+export { getTenant, getTenantUser, findProduct, getProductById }
+
+async function createProduct(
+    tenant_id: string,
+    title: string,
+    price: number,
+    debug: boolean,
+    step: number,
+    image_src?: string | null,
+    description?: string | null,
+    seoT?: string | null,
+) {
+    debuggerDatabase('createProduct()', debug, step);
+
+    try {
+
+        const img = image_src ?? null;
+        const desc = description ?? null;
+        const seo = seoT ?? null;
+
+        const response = await pool.query(`
+            INSERT INTO ${tables.products} (tenant_id, title, price, image_src, description, seo)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *;`,
+            [tenant_id, title, price, img, desc, seo]
+        );
+
+        return response.rows[0];
+
+    } catch (error) {
+        if(debug) console.log('Erro ao inserir produto no database:', error);
+        const info = 'insertProduct()';
+        const message = 'Error trying to insert product into the database';
+        throw new HttpError(StatusCode.NotFound, info, message, step);
+    };
+};
+
+async function readProducts(
+    tenant_id: string,
+    debug: boolean,
+    step: number
+) {
+    debuggerDatabase('getProducts()', debug, step);
+
+    try {
+        const response = await pool.query(`
+            SELECT * FROM ${tables.products} 
+            WHERE tenant_id = $1;`,
+            [tenant_id]
+        );
+
+        return response.rows;
+
+    } catch (error) {
+        if(debug) console.log('Erro ao procurar produtos no database:', error);
+        const info = 'getProducts()';
+        const message = 'Error trying to find products in the database';
+        throw new HttpError(StatusCode.NotFound, info, message, step);
+    };
+};
+
+async function updateProduct(
+    product_id: number,
+    tenant_id: string,
+    queryCommand: string,
+    debug: boolean,
+    step: number
+) {
+    debuggerDatabase('updateDatabase()', debug, step);
+
+    try {
+        const response = await pool.query(`
+            UPDATE ${tables.products}
+            SET ${queryCommand}
+            WHERE id = $1
+            AND tenant_id = $2
+            RETURNING *;`,
+            [product_id, tenant_id]
+        );
+
+        console.log('produto do banco de dados:');
+
+        return response.rows[0];
+    } catch (error) {
+        if(debug) console.log('Erro ao atualizar produto no database:', error);
+        const info = 'updateProduct()';
+        const message = 'Error trying to update product into the database';
+        throw new HttpError(StatusCode.BadRequest, info, message, step);
+    };
+};
+
+async function deleteProduct(
+    product_id: number,
+    tenant_id: string,
+    debug: boolean,
+    step: number
+) {
+    debuggerDatabase('deleteProduct()', debug, step);
+
+    try {
+        const response = await pool.query(`
+            DELETE FROM ${tables.products}
+            WHERE id = $1 
+            AND tenant_id = $2`,
+            [product_id, tenant_id]
+        );
+
+        console.log(response);
+        console.log(response.rows);
+        
+
+        return response;
+        
+    } catch (error) {
+        
+    };
+};
+
+export { createProduct, readProducts, updateProduct, deleteProduct };

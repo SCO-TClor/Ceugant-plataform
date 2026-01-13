@@ -2,7 +2,7 @@ import * as http from 'http';
 import platformRouter from './platform/router/platform.route';
 import { StatusCode } from './@types/headWriter';
 import CORS_validator from './middleware/corsValidation';
-import { errorNotFound } from './utils/endPoints';
+import { codeCase } from './utils/endPoints';
 
 async function app(
     req: http.IncomingMessage, 
@@ -45,7 +45,7 @@ async function app(
             default:
                 console.log('Erro    | Origem encontrada!');
                 console.log(`Allowed | ${values}`);
-                errorNotFound(res, 'Origin NotFound', 'Origin designation wasn\'t expected!', debug, step);
+                codeCase(res, 'MAIN_003', debug, step)
                 break;
         };
     } catch (err) {

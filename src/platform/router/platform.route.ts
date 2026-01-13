@@ -1,11 +1,11 @@
 import * as http from "http";
-import { errorNotFound, errorMethodNotAllowed } from "../../utils/endPoints";
 import * as authController from '../controller/auth.controller';
 import * as privController from '../controller/priv.controller';
-import { HttpMethod } from "../../@types/headWriter";
+import { codeCase } from "../../utils/endPoints";
+import { HttpMethod, StatusCode } from "../../@types/headWriter";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { HttpError } from "../../utils/ThrowError";
-import { insertProd, getProd } from "../controller/products.controller";
+import { createProd, deleteProd, readProd, updateProd } from "../controller/products.controller";
 import { getTenant } from "../../data/databaseProducts";
 
 async function platformRouter(
@@ -33,39 +33,39 @@ async function platformRouter(
                         if(req.method === HttpMethod.POST) {
                             await authController.signup(req, res, routes, debug, step);
                         } else {
-                            errorMethodNotAllowed(res, 'Method NotFound', 'Method wasn\'t created yet!', debug, step);
+                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
                         };
                         break;
                     case 'login':
                         if(req.method === HttpMethod.POST) {
                             await authController.login(req, res, routes, debug, step);
                         } else {
-                            errorMethodNotAllowed(res, 'Method NotFound', 'Method wasn\'t created yet!', debug, step);
+                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
                         };
                         break;
                     case 'refresh':
                         if(req.method === HttpMethod.POST) {
                             await authController.refresh(req, res, routes, debug, step);
                         } else {
-                            errorMethodNotAllowed(res, 'Method NotFound', 'Method wasn\'t created yet!', debug, step);
+                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
                         };
                         break;
                     case 'send-verification':
                         if(req.method === HttpMethod.POST) {
                             await authController.sendVerifyEmail(req, res, routes, debug, step);
                         } else {
-                            errorMethodNotAllowed(res, 'Method NotFound', 'Method wasn\'t created yet!', debug, step);
+                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
                         };
                         break;
                     case 'verify':
                         if(req.method === HttpMethod.GET) {
                             await authController.verifyEmail(req, res, routes, debug, step);
                         } else {
-                            errorMethodNotAllowed(res, 'Method NotFound', 'Method wasn\'t created yet!', debug, step);
+                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
                         };
                         break;
                     default:
-                        errorNotFound(res, 'AuthRoute NotFound', 'authRoute doesn\'t exist!', debug, step);
+                        codeCase(res, 'MAIN_005', debug, step)
                         break;
                 };
                 break;
@@ -80,20 +80,26 @@ async function platformRouter(
                         await privController.meController(req, res, debug, routes, step);
                         break;
                     case 'products':
-                        if(req.method === HttpMethod.GET) {
-                            await getProd(req, res, routes, debug, step);
-                        };
                         if(req.method === HttpMethod.POST) {
-                            await insertProd(req, res, debug, step);
+                            await createProd(req, res, debug, step);
+                        };
+                        if(req.method === HttpMethod.GET) {
+                            await readProd(req, res, debug, step);
+                        };
+                        if(req.method === HttpMethod.PATCH) {
+                            await updateProd(req, res, debug, step);
+                        };
+                        if(req.method === HttpMethod.DELETE) {
+                            await deleteProd(req, res, debug, step);
                         };
                         break;
                     default:
-                        errorNotFound(res, 'Route NotFound', 'route doesn\'t exist!', debug, step);
+                        codeCase(res, 'MAIN_004', debug, step)
                         break;
                 };
                 break;
             default:
-                errorNotFound(res, 'Route NotFound', 'route doesn\'t exist!', debug, step);
+                codeCase(res, 'MAIN_005', debug, step)
                 break;
         };
     } catch (erro) {
@@ -101,6 +107,11 @@ async function platformRouter(
         if(erro instanceof HttpError) {
             if(debug) console.log(`Failed at function | ${erro.at}`);
             if(debug) console.log(`Failed at step     | ${erro.step}`);
+            if(erro.statuscode === StatusCode.MethodNotAllowed) {
+                codeCase(res, 'MAIN_001', debug, step);
+                return;
+            };
+            codeCase(res, 'MAIN_002', debug, step);
             return;
         };
         throw new Error(`

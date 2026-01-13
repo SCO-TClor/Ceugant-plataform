@@ -1,6 +1,7 @@
 import * as http from "http";
 import app from "./app";
 import { getProfile, getUsers } from "./data/databaseAuth";
+import { emailInternalServerError } from "./utils/emailSender";
 
 // nome: Ceugant
 
@@ -30,6 +31,7 @@ const server = http.createServer( async (
     console.log(newURL);
     await app(req, res, allowedOrigins, newURL, debug, step);
     // await getUsers(debug, step); // (isso aqui é para debug meu clark!)
+    // await emailInternalServerError('Database users', 'getProfile()', step, debug);
 });
 
 server.listen(porta, () => {

@@ -1,5 +1,4 @@
 import * as http from 'http';
-import * as resWriter from '../../utils/endPoints';
 import * as bcrypt from 'bcrypt';
 import * as JwT from 'jsonwebtoken';
 import { dataDrain } from '../../utils/dataDrainer';
@@ -11,6 +10,7 @@ import { HttpError } from '../../utils/ThrowError';
 import { verifyService } from '../services/auth/verify.service';
 import { debuggerController } from '../../utils/debuggers';
 import { codeCase } from '../../utils/endPoints';
+import { emailInternalServerError } from '../../utils/emailSender';
 
 async function sendVerifyEmail(     // Email verify sender
     req: http.IncomingMessage,
@@ -21,7 +21,7 @@ async function sendVerifyEmail(     // Email verify sender
 ) {
     if(debug) console.log('');
     if(debug) console.log('>-----> auth.constroller.ts <-----<');
-    debuggerController('sendVerifyEmail', req, debug, step, routes);
+    debuggerController('sendVerifyEmail()', req, debug, step, routes);
     
     try {
         const { email } = JSON.parse(await dataDrain(req));
@@ -29,7 +29,7 @@ async function sendVerifyEmail(     // Email verify sender
         const response = await verifyService(email, debug, step);
 
         if(response === true) {
-            resWriter.sucess(res, 'Email verification sended', 'Sended email verification for user email!', debug, step);
+            codeCase(res, 'AUTH_013', debug, step);
         };
 
         return;
@@ -41,12 +41,12 @@ async function sendVerifyEmail(     // Email verify sender
             if(debug) console.log(`Info     | ${error.info}`);
             if(debug) console.log(`StatusC  | ${error.statuscode}`);
 
-            if(error.statuscode === StatusCode.NotFound) {
-                resWriter.errorNotFound(res, error.info, 'Email not founded', debug, step);
+            if(error.statuscode === StatusCode.NotFound && error.at === 'getProfile()') {
+                codeCase(res, 'AUTH_011', debug, step);
                 return;
             };
             if(error.statuscode === StatusCode.OK) {
-                resWriter.sucess(res, 'Already verified', 'Email has already been verified!', debug, error.step);
+                codeCase(res, 'AUTH_014', debug, step);
                 return;
             };
         };
@@ -62,7 +62,7 @@ async function verifyEmail(         // Email verifier
 ) {
     if(debug) console.log('');
     if(debug) console.log('>-----> auth.constroller.ts <-----<');
-    debuggerController('verifyEmail', req, debug, step, routes);
+    debuggerController('verifyEmail()', req, debug, step, routes);
 
     try {
         const newURL = new URL(req.url || '/', process.env.SERVER_ADDRESS);
@@ -75,12 +75,12 @@ async function verifyEmail(         // Email verifier
         const profile: usersDatabase = await getProfile(verify_combo.email, debug, step);
 
         if(profile.email_verified === true) {
-            resWriter.sucess(res, 'Email already verified', 'User email has already been verified!', debug, step);
+            codeCase(res, 'AUTH_014', debug, step);
             return;
         };
 
         if(profile.verification_token === null || profile.verification_expires === null) {
-            resWriter.errorNotFound(res, 'Token not issued', 'Token doesn\'t exist in the database', debug, step);
+            codeCase(res, 'AUTH_012', debug, step)
             return;
         };
 
@@ -101,11 +101,11 @@ async function verifyEmail(         // Email verifier
         const update = await updateEmail(profile.email, debug, step);
 
         if(update.rowCount === 0) {
-            resWriter.errorNotFound(res, 'Update failed!', 'Update operation didn\'t proceed right', debug, step);
+            codeCase(res, 'MAIN_002', debug, step);
             return;
         };
 
-        resWriter.sucess(res, 'Email verified!', 'Email was verified sucessfully!', debug, step);
+        codeCase(res, 'AUTH_015', debug, step);
         return;
 
     } catch (error) {
@@ -117,7 +117,8 @@ async function verifyEmail(         // Email verifier
             if(debug) console.log(`Info     | ${error.info}`);
             if(debug) console.log(`StatusC  | ${error.statuscode}`);
             if(error.statuscode === StatusCode.NotFound && error.info === 'Failed to update email verification') {
-                resWriter.errorNotFound(res, 'Update failed', 'Failed to update email verification', debug, step);
+                codeCase(res, 'MAIN_002', debug, step);
+                await emailInternalServerError('Failed to update email verification at verifyService()', 'setVerifyToken()', step, debug)
                 return;
             };
         };
@@ -133,7 +134,7 @@ async function signup(              // Sign up
 ) {
     if(debug) console.log('');
     if(debug) console.log('>-----> auth.constroller.ts <-----<');
-    debuggerController('signup', req, debug, step, routes);
+    debuggerController('signup()', req, debug, step, routes);
 
     try {
         const { name, email, password } = JSON.parse(await dataDrain(req));
@@ -146,9 +147,7 @@ async function signup(              // Sign up
         const exist = await findUser(data.email, debug, step);
 
         if(exist) {
-            const info = 'Email already exists';
-            const moreinfo = 'Error trying to sign up with an existent email in the database!';
-            resWriter.errorConflict(res, info, moreinfo, debug, step);
+            codeCase(res, 'AUTH_010', debug, step);
             return;
         };
 
@@ -156,11 +155,8 @@ async function signup(              // Sign up
         console.log('Existe? ', exist);
 
         await insertUser(name, email, password, debug, step);
-        
-        const info = 'Email created sucessfully';
-        const moreinfo = 'Email sucessfully inserted to the database';
-        resWriter.sucess(res, info, moreinfo, debug, step);
 
+        codeCase(res, 'AUTH_018', debug, step);
         return;
         
     } catch (error) {
@@ -179,7 +175,7 @@ async function login(               // Log in
 ) {
     if(debug) console.log('');
     if(debug) console.log('>-----> auth.constroller.ts <-----<');
-    debuggerController('login', req, debug, step, routes);
+    debuggerController('login()', req, debug, step, routes);
 
     try {
         const { email, password } = JSON.parse(await dataDrain(req));
@@ -196,7 +192,7 @@ async function login(               // Log in
         const exist = await findUser(data.email, debug, step);
 
         if(!exist) {
-            resWriter.errorNotFound(res, 'email adress notFound', 'Email doesn\'t exist in the database', debug, step);
+            codeCase(res, 'AUTH_011', debug, step)
             return;
         };
         
@@ -224,7 +220,7 @@ async function login(               // Log in
             `refresh_cookie=${result.refresh_token}; Path=/platform/auth/refresh; HttpOnly; SameSite=Strict; Max-Age=${expRT}`
         ]);
 
-        resWriter.sucess(res, 'Sucess loggin in', 'Log in managed sucessfully', debug, step);
+        codeCase(res, 'AUTH_016', debug, step)
         return;
         
     } catch (error) {
@@ -255,7 +251,7 @@ async function refresh(             // Refresh token
 ) {
     if(debug) console.log('');
     if(debug) console.log('>-----> auth.constroller.ts <-----<');
-    debuggerController('refresh', req, debug, step, routes);
+    debuggerController('refresh()', req, debug, step, routes);
 
     try {
         const cookie = req.headers.cookie || '';
@@ -311,14 +307,13 @@ async function refresh(             // Refresh token
         const expT = minute * 15;
 
         res.setHeader("Set-Cookie", `access_cookie=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${expT}`);
-        resWriter.sucess(res, 'sucess creating token', 'Access_token created and sended sucessfully', debug, step);
+        codeCase(res, 'AUTH_017', debug, step)
         return;
 
     } catch (error) {
         if(debug) console.log('!-> platform.controller / Error <-!');
         if(debug) console.log(`Failed at | step ${step}`);
-        // Token não existe = 404
-        // resWriter.errorUnauthorized(res, 'refresh token invalid', 'Refresh token either expired or is invalid', debug, step);
+        codeCase(res, 'AUTH_0121', debug, step);
         return;
     };
 };
