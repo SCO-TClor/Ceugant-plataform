@@ -1,5 +1,7 @@
 import { productInterface } from "../../../@types/payload";
-import { readProducts, updateProduct } from "../../../data/databaseProducts";
+import { updateProduct } from "../../../data/products.repository";
+import { HttpError } from "../../../utils/ThrowError";
+import { StatusCode } from "../../../@types/headWriter";
 
 async function updateService(
     data: Record<string, any> | productInterface,
@@ -7,35 +9,33 @@ async function updateService(
     debug: boolean,
     step: number
 ) {
-    let queryCommand = '';
+    const allowedFields = ["title", "price", "image_src", "description", "seo", "status"] as const;
 
-    if(data.title) {
-        queryCommand = queryCommand.concat(`title = '${data.title}', `);
-    };
-    if(data.price) {
-        queryCommand = queryCommand.concat(`price = ${data.price}, `);
-    };
-    if(data.image_src) {
-        queryCommand = queryCommand.concat(`image_src = '${data.image_src}', `);
-    };
-    if(data.description) {
-        queryCommand = queryCommand.concat(`description = '${data.description}', `);
-    };
-    if(data.seo) {
-        queryCommand = queryCommand.concat(`seo = '${data.seo}', `);
-    };
+    const setClauses: string[] = [];
+    const values: Array<string | number> = [];
 
-    const comma = queryCommand.slice(0, -2);
+    for (const field of allowedFields) {
+        const value = data[field];
+        if (value !== undefined && value !== null) {
+            values.push(value);
+            setClauses.push(field + " = $" + values.length);
+        }
+    }
 
-    console.log('queryCommand start');
-    console.log(comma);
-    console.log('queryCommand end');
+    if (!data.id || setClauses.length === 0) {
+        throw new HttpError(
+            StatusCode.BadRequest,
+            "updateService()",
+            "No valid fields to update",
+            step
+        );
+    }
 
-    const updated = await updateProduct(data.id, tenant_id, comma, debug, step);
+    const updated = await updateProduct(data.id, tenant_id, setClauses, values, debug, step);
 
-    if(updated) {
-        console.log('atualizou!!')
-    };
+    if(updated && debug) {
+        console.log('atualizou!!');
+    }
 
     return updated;
     

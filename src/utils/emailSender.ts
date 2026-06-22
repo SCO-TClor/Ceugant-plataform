@@ -186,8 +186,8 @@ async function emailVerifier(
                     <td align="center">
                         <table width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td style="padding: 20px 20px; background: linear-gradient(135deg, #00f2ff 0%, #00d4ff 100%); text-align: center;">
-                                    <img src="https://sco-tclor.github.io/images/desenhoWBg.png" style="width: 180px; height: 180px; object-fit: contain; border-radius: 50%; background-color: rgba(255,255,255,0.1); padding: 10px;">
+                                <td style="padding: 20px 20px; background: linear-gradient(135deg, hsl(183, 100%, 50%) 0%, hsl(262, 100%, 30%) 100%); text-align: center;">
+                                    <img src="https://sco-tclor.github.io/images/logo%20ceugant.png" style="width: 180px; height: 180px; object-fit: contain; border-radius: 25%; background-color: rgba(255, 255, 255, 0.15); padding: 10px;">
                                 </td>
                             </tr>
                             <tr>

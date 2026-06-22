@@ -1,19 +1,24 @@
 import * as http from "http";
+import * as https from 'https';
+import * as fs from 'fs';
 import app from "./app";
-import { getProfile, getUsers } from "./data/databaseAuth";
-import { emailInternalServerError } from "./utils/emailSender";
+import { getProfile, getUsers } from "./data/auth.repository";
+import { emailInternalServerError, emailVerifier } from "./utils/emailSender";
 
 // nome: Ceugant
 
 const debug = true;
 const porta = Number(process.env.SERVER_PORT);
 const allowedOrigins = {
-    platform: process.env.ALLOWED_ORIGIN_PLATFORM || '',
+    platform : process.env.ALLOWED_ORIGIN_PLATFORM || '',
     clients  : process.env.ALLOWED_ORIGIN_CLIENTS || ''
 };
 
 
-const server = http.createServer( async (
+const server = https.createServer({
+    key: fs.readFileSync('./localhost+2-key.pem'),
+    cert: fs.readFileSync('./localhost+2.pem')
+}, async (
     req: http.IncomingMessage,
     res: http.ServerResponse
 ) => {
@@ -30,10 +35,8 @@ const server = http.createServer( async (
     
     console.log(newURL);
     await app(req, res, allowedOrigins, newURL, debug, step);
-    // await getUsers(debug, step); // (isso aqui é para debug meu clark!)
-    // await emailInternalServerError('Database users', 'getProfile()', step, debug);
 });
 
 server.listen(porta, () => {
-    console.log(`Servidor iniciado na porta ${porta}`);
+    console.log(`Servidor HTTPS iniciado na porta ${porta}`);
 });

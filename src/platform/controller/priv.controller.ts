@@ -1,9 +1,7 @@
 import * as http from 'http';
 import { debuggerController } from '../../utils/debuggers';
 import { usersDatabase } from '../../@types/httpInterface';
-import { getProfileById } from '../../data/databaseAuth';
-import { dataDrain } from '../../utils/dataDrainer';
-import { insertInterface } from '../../@types/payload';
+import { getProfileById } from '../../data/auth.repository';
 import { codeCase } from '../../utils/endPoints';
 
 async function meController(
@@ -26,7 +24,7 @@ async function meController(
 
         const profile: usersDatabase = await getProfileById(userID, debug, step);
 
-        console.log(profile);
+        codeCase(res, 'AUTH_016', debug, step, profile);
         
     } catch (error) {
         return;

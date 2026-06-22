@@ -8,7 +8,7 @@ enum expTimeEnum {
 };
 
 function timeMatcher(
-    time: expTimeEnum,
+    time: expireTime,
     expire: number
 ) {
     const minute = 60;
@@ -32,8 +32,9 @@ function setCookies(
     res: http.ServerResponse,
     name: string,
     cookie_value: string,
-    time: expTimeEnum,
+    time: expireTime,
     expire: number,
+    path: string = '/',
     secured: boolean = false
 ) {
     const exp: number = timeMatcher(time, expire);
@@ -42,14 +43,19 @@ function setCookies(
 
     const secure = secured ? ' Secure;' : '';
 
+    const SameSite = secured ?  'SameSite=None;' : 'SameSite=Lax;';
+
+    console.log(`Cookie setted: '${name}'`);
+    console.log(SameSite);
+
     if(!lastOnes) {
-        res.setHeader(`Set-Cookie`, `${name}=${cookie_value}; Path=/; HttpOnly;${secure} SameSite=Strict; Max-Age=${exp}`);
+        res.setHeader(`Set-Cookie`, `${name}=${cookie_value}; Path=${path}; HttpOnly;${secure} ${SameSite} Max-Age=${exp}`);
     } else if(Array.isArray(lastOnes)) {
-        res.setHeader(`Set-Cookie`, [...lastOnes,`${name}=${cookie_value}; Path=/; HttpOnly;${secure} SameSite=Strict; Max-Age=${exp}`]);
+        res.setHeader(`Set-Cookie`, [...lastOnes,`${name}=${cookie_value}; Path=${path}; HttpOnly;${secure} ${SameSite} Max-Age=${exp}`]);
     } else {
         const lastCookie = lastOnes?.toString();
-        res.setHeader(`Set-Cookie`, [lastCookie,`${name}=${cookie_value}; Path=/; HttpOnly;${secure} SameSite=Strict; Max-Age=${exp}`]);
+        res.setHeader(`Set-Cookie`, [lastCookie,`${name}=${cookie_value}; Path=${path}; HttpOnly;${secure} ${SameSite} Max-Age=${exp}`]);
     };
 };
 
-export {  };
+export { setCookies };

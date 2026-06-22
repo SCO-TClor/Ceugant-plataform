@@ -12,7 +12,7 @@ function debuggerDatabase(
     step: number
 ) {
     if(debug) console.log('');
-    if(debug) console.log('>-------> databaseAuth.ts <-------<');
+    if(debug) console.log('>------> auth.repository.ts <-----<');
     if(debug) console.log(`Step     | ${step}`);
     if(debug) console.log(`Function | ${funcao}`);
     step++;
@@ -68,6 +68,7 @@ async function getProfileById(
         const response = await pool.query<usersDatabase>
         (
             `SELECT id,
+                    name,
                     email,
                     refresh_token
             FROM ${tables.users} WHERE id = $1`,

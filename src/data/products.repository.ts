@@ -120,7 +120,6 @@ async function getTenantUser(
     try {
         if(!userId) {
             console.log('userId não existe!!! --------------');
-            
             throw Error('userId doesn\'t exist!');
         };
 
@@ -129,6 +128,14 @@ async function getTenantUser(
             WHERE user_id = $1;`,
         [userId]
         );
+
+        console.log('Buscou tenant no database');
+        
+
+        if(!response.rows[0]) {
+            throw new Error();
+        };
+
         return response.rows[0];
     } catch (error) {
         if(debug) console.log('Erro ao procurar tenant user no database:', error);
@@ -138,7 +145,41 @@ async function getTenantUser(
     };
 };
 
-export { getTenant, getTenantUser, findProduct, getProductById }
+export { getTenant, getTenantUser, findProduct, getProductById };
+
+// Validation:
+
+async function getProductNames(
+    product_id: number,
+    tenant_id: string,
+    title: string,
+    debug: boolean,
+    step: number
+) {
+    debuggerDatabase('getProductNames()', debug, step);
+
+    try {
+        const response = await pool.query(`
+            SELECT id, title 
+            FROM ${tables.products}
+            WHERE id = $1
+            AND tenant_id = $2
+            AND title = $3;
+            `,
+            [product_id, tenant_id, title]
+        );
+
+        return response.rows[0];
+
+    } catch (error) {
+        if(debug) console.log('Erro ao procurar produto no database:', error);
+        const info = 'getProductNames()';
+        const message = 'Error trying to find product in the database';
+        throw new HttpError(StatusCode.NotFound, info, message, step);
+    };
+};
+
+export {};
 
 async function createProduct(
     tenant_id: string,
@@ -149,6 +190,7 @@ async function createProduct(
     image_src?: string | null,
     description?: string | null,
     seoT?: string | null,
+    statusT?: string | null
 ) {
     debuggerDatabase('createProduct()', debug, step);
 
@@ -157,12 +199,13 @@ async function createProduct(
         const img = image_src ?? null;
         const desc = description ?? null;
         const seo = seoT ?? null;
+        const status = statusT ?? 'active';
 
         const response = await pool.query(`
-            INSERT INTO ${tables.products} (tenant_id, title, price, image_src, description, seo)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO ${tables.products} (tenant_id, title, price, image_src, description, seo, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;`,
-            [tenant_id, title, price, img, desc, seo]
+            [tenant_id, title, price, img, desc, seo, status]
         );
 
         return response.rows[0];
@@ -202,27 +245,46 @@ async function readProducts(
 async function updateProduct(
     product_id: number,
     tenant_id: string,
-    queryCommand: string,
+    setClauses: string[],
+    values: Array<string | number>,
     debug: boolean,
     step: number
 ) {
     debuggerDatabase('updateDatabase()', debug, step);
 
     try {
-        const response = await pool.query(`
+        if(setClauses.length === 0) {
+            throw new HttpError(
+                StatusCode.BadRequest,
+                'updateProduct()',
+                'No fields provided for update',
+                step
+            );
+        };
+
+        const setSql = setClauses.join(', ');
+        const idParam = `$${values.length + 1}`;
+        const tenantParam = `$${values.length + 2}`;
+
+        const sql = `
             UPDATE ${tables.products}
-            SET ${queryCommand}
-            WHERE id = $1
-            AND tenant_id = $2
-            RETURNING *;`,
-            [product_id, tenant_id]
-        );
+            SET ${setSql}
+            WHERE id = ${idParam}
+            AND tenant_id = ${tenantParam}
+            RETURNING *;`;
+
+        const response = await pool.query(sql, [...values, product_id, tenant_id]);
 
         console.log('produto do banco de dados:');
 
         return response.rows[0];
     } catch (error) {
         if(debug) console.log('Erro ao atualizar produto no database:', error);
+
+        if(error instanceof HttpError) {
+            throw error;
+        };
+
         const info = 'updateProduct()';
         const message = 'Error trying to update product into the database';
         throw new HttpError(StatusCode.BadRequest, info, message, step);

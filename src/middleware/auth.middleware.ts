@@ -3,7 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import * as erro from '../utils/endPoints';
 import { HttpError } from '../utils/ThrowError';
 import { StatusCode } from '../@types/headWriter';
-import { getTenant, getTenantUser } from '../data/databaseProducts';
+import { getTenant, getTenantUser } from '../data/products.repository';
 import { tenant_users } from '../data/database/databaseEnum';
 import { codeCase } from '../utils/endPoints';
 
@@ -58,6 +58,10 @@ async function authMiddleware(
         };
         
         const payload = jwt.verify(Auth.access_cookie, secret) as JwtPayload;
+
+        console.log('VALIDOU O PAYLOAD');
+        console.log(payload);
+        
         const tenant: tenant_users = await getTenantUser(payload.userId, debug, step);
         console.log('Tenant infos:', tenant);
 
@@ -71,10 +75,11 @@ async function authMiddleware(
         console.log(req.user);
 
         return true;
+        
     } catch (error) {
         if(error instanceof HttpError) {
             if(debug) console.log('Erro ao procurar tenant no database');
-            erro.errorNotFound(res, 'tenant_id NotFound', 'Tenant não encontrado no banco de dados', debug, step);
+            codeCase(res, 'AUTH_0122', debug, step);
             return false;
         };
         console.log('JWT expired');

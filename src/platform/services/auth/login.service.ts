@@ -1,4 +1,4 @@
-import { setRefreshToken } from "../../../data/databaseAuth";
+import { setRefreshToken } from "../../../data/auth.repository";
 import { HttpError } from "../../../utils/ThrowError";
 import { StatusCode } from "../../../@types/headWriter";
 import { sendData, usersDatabase } from "../../../@types/httpInterface";

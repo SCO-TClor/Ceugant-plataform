@@ -1,6 +1,6 @@
 import { insertInterface } from "../../../@types/payload";
 import * as http from 'http';
-import { findProduct, createProduct } from "../../../data/databaseProducts";
+import { findProduct, createProduct } from "../../../data/products.repository";
 import { HttpError } from "../../../utils/ThrowError";
 import { StatusCode } from "../../../@types/headWriter";
 
@@ -21,7 +21,7 @@ async function insertService(
         throw new HttpError(StatusCode.Conflict, 'insertService()', 'Product already inserted', step);
     };
 
-    const insert = await createProduct(user.tenant_id, data.title, data.price, debug, step, data.image_src, data.description, data.seo);
+    const insert = await createProduct(user.tenant_id, data.title, data.price, debug, step, data.image_src, data.description, data.seo, data.status);
 
     if(!insert) {
         console.log('deu problema inserindo produto');

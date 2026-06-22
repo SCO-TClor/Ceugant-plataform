@@ -3,7 +3,8 @@ type insertInterface = {
     price: number,
     image_src?: string,
     description?: string,
-    seo?: string
+    seo?: string,
+    status?: string
 };
 
 interface productInterface {
@@ -13,6 +14,7 @@ interface productInterface {
     image_src?: string,
     description?: string,
     seo?: string
+    status?: string
 };
 
 export { insertInterface, productInterface }

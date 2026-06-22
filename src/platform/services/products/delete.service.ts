@@ -1,4 +1,4 @@
-import { deleteProduct } from "../../../data/databaseProducts"
+import { deleteProduct } from "../../../data/products.repository"
 
 async function deleteService(
     product_id: number,

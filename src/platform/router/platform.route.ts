@@ -6,7 +6,7 @@ import { HttpMethod, StatusCode } from "../../@types/headWriter";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { HttpError } from "../../utils/ThrowError";
 import { createProd, deleteProd, readProd, updateProd } from "../controller/products.controller";
-import { getTenant } from "../../data/databaseProducts";
+import { getTenant } from "../../data/products.repository";
 
 async function platformRouter(
     req: http.IncomingMessage, 
@@ -84,7 +84,7 @@ async function platformRouter(
                             await createProd(req, res, debug, step);
                         };
                         if(req.method === HttpMethod.GET) {
-                            await readProd(req, res, debug, step);
+                            await readProd(req, res, debug, step, routes.shift());
                         };
                         if(req.method === HttpMethod.PATCH) {
                             await updateProd(req, res, debug, step);

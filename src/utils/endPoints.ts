@@ -64,6 +64,7 @@ type code =
     | 'AUTH_011'
     | 'AUTH_012'
     | 'AUTH_0121'
+    | 'AUTH_0122'
     | 'AUTH_013'
     | 'AUTH_014'
     | 'AUTH_015'
@@ -81,6 +82,7 @@ type code =
     | 'PROD_008'
     | 'PROD_009'
     | 'PROD_010'
+    | 'PROD_011'
 
     | 'MAIN_001'
     | 'MAIN_002'
@@ -180,8 +182,14 @@ function codeCase(
         AUTH_0121: {
             status: 'error',
             code: StatusCode.NotFound,
-            info: 'Eefresh token invalid!',
+            info: 'Refresh token invalid!',
             more_info: 'Refresh token either expired or is invalid'
+        },
+        AUTH_0122: {
+            status: 'error',
+            code: StatusCode.NotFound,
+            info: 'Tenant id NotFound!',
+            more_info: 'Tenant-id NotFound in the database'
         },
         AUTH_013: { // SUCESS
             status: 'success',
@@ -279,6 +287,12 @@ function codeCase(
             code: StatusCode.NoContent,
             info: 'Product deleted successfully',
             more_info: 'Product information deleted successfully in the database!'
+        },
+        PROD_011: {
+            status: 'error',
+            code: StatusCode.BadRequest,
+            info: 'Product id route is NaN',
+            more_info: 'Product id provided needs to be a number!'
         },
         // General Lobby:           // ------ // ------ // ------ // ------ // ------ //
         MAIN_001: {

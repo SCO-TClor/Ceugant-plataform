@@ -2,7 +2,7 @@ import * as http from 'http';
 import * as bcrypt from 'bcrypt';
 import * as JwT from 'jsonwebtoken';
 import { dataDrain } from '../../utils/dataDrainer';
-import { findUser, getProfile, getProfileById, insertUser, updateEmail } from '../../data/databaseAuth';
+import { findUser, getProfile, getProfileById, insertUser, updateEmail } from '../../data/auth.repository';
 import { JwtData, refreshPayload, sendData, SignUpData, usersDatabase } from '../../@types/httpInterface';
 import { loginService } from '../services/auth/login.service';
 import { StatusCode } from '../../@types/headWriter';
@@ -11,6 +11,7 @@ import { verifyService } from '../services/auth/verify.service';
 import { debuggerController } from '../../utils/debuggers';
 import { codeCase } from '../../utils/endPoints';
 import { emailInternalServerError } from '../../utils/emailSender';
+import { setCookies } from '../../utils/cookieSetter';
 
 async function sendVerifyEmail(     // Email verify sender
     req: http.IncomingMessage,
@@ -178,6 +179,8 @@ async function login(               // Log in
     debuggerController('login()', req, debug, step, routes);
 
     try {
+        console.log('tentativa 1');
+        
         const { email, password } = JSON.parse(await dataDrain(req));
         const data: sendData = {
             email: email.trim(),
@@ -188,6 +191,9 @@ async function login(               // Log in
             codeCase(res, 'AUTH_001', debug, step);
             return;
         };
+
+        console.log(data);
+        
 
         const exist = await findUser(data.email, debug, step);
 
@@ -207,18 +213,8 @@ async function login(               // Log in
         const result: JwtData = await loginService(data, profile, debug, step);
         console.log('resultado:', result);
 
-        
-        const minute = 60;
-        const hour = minute * 60;
-        const day = hour * 24;
-
-        const expT = minute * 15;
-        const expRT = day * 7;
-
-        res.setHeader('Set-Cookie', [
-            `access_cookie=${result.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${expT}`,
-            `refresh_cookie=${result.refresh_token}; Path=/platform/auth/refresh; HttpOnly; SameSite=Strict; Max-Age=${expRT}`
-        ]);
+        setCookies(res, 'access_cookie', result.token, 'm', 15, '/', true);
+        setCookies(res, 'refresh_cookie', result.refresh_token, 'd', 7, '/platform/auth/refresh', true);
 
         codeCase(res, 'AUTH_016', debug, step)
         return;
@@ -301,12 +297,9 @@ async function refresh(             // Refresh token
             secretAccess,
             { expiresIn: "15m"}
         );
+
+        setCookies(res, 'access_cookie', token, 'm', 15, '/', true);
         
-        const minute = 60;
-
-        const expT = minute * 15;
-
-        res.setHeader("Set-Cookie", `access_cookie=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${expT}`);
         codeCase(res, 'AUTH_017', debug, step)
         return;
 

@@ -1,6 +1,6 @@
 import * as http from 'http';
 import { debuggerController } from '../../utils/debuggers';
-import { findProduct, getProductById, readProducts } from '../../data/databaseProducts';
+import { findProduct, getProductById, readProducts } from '../../data/products.repository';
 import { tenants } from '../../data/database/databaseEnum';
 import { insertInterface, productInterface } from '../../@types/payload';
 import { dataDrain } from '../../utils/dataDrainer';
@@ -22,7 +22,9 @@ async function createProd(
     debuggerController('createProd()', req, debug, step);
     
     try {
-        const { title, price, description, image_src, seo } = JSON.parse(await dataDrain(req));
+        console.log('trying!!');
+        
+        const { title, price, description, image_src, seo, status } = JSON.parse(await dataDrain(req));
         console.log('titulo: ', title);
 
         if(!title || !price) {
@@ -35,8 +37,12 @@ async function createProd(
             price: price,
             description: description ? description.trim() : null,
             image_src: image_src ? image_src.trim() : null,
-            seo: seo ? seo.trim() : null
+            seo: seo ? seo.trim() : null,
+            status: status ? status : 'active'
         };
+
+        console.log('status:', data.status);
+        
 
         const inserted = await insertService(data, req.user, debug, step);
 
@@ -68,7 +74,8 @@ async function readProd(
     req: http.IncomingMessage,
     res: http.ServerResponse,
     debug: boolean,
-    step: number
+    step: number,
+    product_id?: string
 ) {
     if(debug) console.log('');
     if(debug) console.log('>---> products.controller.ts <----<');
@@ -85,16 +92,53 @@ async function readProd(
             codeCase(res, 'PROD_002', debug, step);
             return;
         };
-
-        const products = await readProducts(req.user.tenant_id, debug, step);
-
-        console.log(products);
         
-        codeCase(res, 'PROD_006', debug, step, products);
+        
+        if(!product_id) {
+            const products = await readProducts(req.user.tenant_id, debug, step);
+            
+            console.log(products);
+            
+            codeCase(res, 'PROD_006', debug, step, products);
+            return;
+        } else {
+            console.log(product_id);
+    
+            const product_num_id = parseInt(product_id);
 
+            if(isNaN(product_num_id)) {
+                throw new HttpError(StatusCode.BadRequest, 'readProd()', 'product route id is NaN', step);
+            };
+    
+            console.log(product_id);
+            
+            const product = await getProductById(product_num_id, req.user.tenant_id, debug, step);
+
+            console.log(product);
+
+            if(product) {
+                codeCase(res, 'PROD_006', debug, step, product);
+                return;
+            } else {
+                codeCase(res, 'PROD_009', debug, step);
+                return;
+            };
+        };
+        
     } catch (error) {
-        
-    }
+        console.log('deu erro aqui vius');
+        if(debug) console.log('-!> products.controller.ts Erro <!-');
+        if(error instanceof HttpError) {
+            if(debug) console.log(`Failed at function | ${error.at}`);
+            if(debug) console.log(`Failed at step     | ${error.step}`);
+            if(error.statuscode === StatusCode.BadRequest) {
+                codeCase(res, 'PROD_011', debug, step);
+                return;
+            };
+            codeCase(res, 'MAIN_002', debug, step);
+            return;
+        };
+    };
 };
 
 async function updateProd(
@@ -118,7 +162,7 @@ async function updateProd(
             return;
         };
 
-        const { title, price, description, image_src, seo, id } = JSON.parse(await dataDrain(req));
+        const { title, price, description, image_src, seo, id, status } = JSON.parse(await dataDrain(req));
         if(!(id && (title || price || description|| image_src|| seo))) {
             codeCase(res, 'PROD_007', debug, step);
             return;
@@ -130,7 +174,8 @@ async function updateProd(
             price: price,
             description: description,
             image_src: image_src,
-            seo: seo
+            seo: seo,
+            status: status
         };
 
         const updateData: Record<string, any> = {};
@@ -141,7 +186,7 @@ async function updateProd(
             };
         };
 
-        console.log('update data: ---------------');
+        console.log('update data: start ---------');
         console.log(updateData);
         console.log('update data: end -----------');
         

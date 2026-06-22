@@ -1,4 +1,4 @@
-import { getProfile, setVerifyToken } from '../../../data/databaseAuth';
+import { getProfile, setVerifyToken } from '../../../data/auth.repository';
 import { emailVerifier } from '../../../utils/emailSender';
 import { StatusCode } from '../../../@types/headWriter';
 import { sendData, usersDatabase } from '../../../@types/httpInterface';
