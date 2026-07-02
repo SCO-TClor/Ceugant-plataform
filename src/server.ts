@@ -14,11 +14,11 @@ const allowedOrigins = {
     clients  : process.env.ALLOWED_ORIGIN_CLIENTS || ''
 };
 
+const useHttps =
+    fs.existsSync("./localhost+2-key.pem") &&
+    fs.existsSync("./localhost+2.pem");
 
-const server = https.createServer({
-    key: fs.readFileSync('./localhost+2-key.pem'),
-    cert: fs.readFileSync('./localhost+2.pem')
-}, async (
+const serverHandler = async (
     req: http.IncomingMessage,
     res: http.ServerResponse
 ) => {
@@ -35,8 +35,13 @@ const server = https.createServer({
     
     console.log(newURL);
     await app(req, res, allowedOrigins, newURL, debug, step);
-});
+};
+
+const server = useHttps ? https.createServer({
+    key: fs.readFileSync('./localhost+2-key.pem'),
+    cert: fs.readFileSync('./localhost+2.pem')
+}, serverHandler) : http.createServer(serverHandler);
 
 server.listen(porta, () => {
-    console.log(`Servidor HTTPS iniciado na porta ${porta}`);
+    console.log(`Servidor ${useHttps ? 'HTTPS' : 'HTTP'} iniciado na porta ${porta}`);
 });

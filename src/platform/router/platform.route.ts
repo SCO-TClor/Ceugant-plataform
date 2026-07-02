@@ -65,44 +65,44 @@ async function platformRouter(
                         };
                         break;
                     // Para implementar ------------------------------------------------__
-                    case 'logout':
-                        if(req.method === HttpMethod.GET) {
-                            await authController.logout(req, res, routes, debug, step);
-                        } else {
-                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
-                        };
-                        break;
-                    case 'forgot-p':
-                        if(req.method === HttpMethod.GET) {
-                            await authController.forgot_p(req, res, routes, debug, step);
-                        } else {
-                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
-                        };
-                        break;
-                    case 'reset-p':
-                        if(req.method === HttpMethod.GET) {
-                            await authController.reset_p(req, res, routes, debug, step);
-                        } else {
-                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
-                        };
-                        break;
-                    case 'change-p':
-                        if(req.method === HttpMethod.GET) {
-                            await authController.change_p(req, res, routes, debug, step);
-                        } else {
-                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
-                        };
-                        break;
-                    case 'get-current':
-                        if(req.method === HttpMethod.GET) {
-                            await authController.get_current(req, res, routes, debug, step);
-                        } else {
-                            throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
-                        };
-                        break;
-                    default:
-                        codeCase(res, 'MAIN_005', debug, step)
-                        break;
+                    // case 'logout':
+                    //     if(req.method === HttpMethod.GET) {
+                    //         await authController.logout(req, res, routes, debug, step);
+                    //     } else {
+                    //         throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
+                    //     };
+                    //     break;
+                    // case 'forgot-p':
+                    //     if(req.method === HttpMethod.GET) {
+                    //         await authController.forgot_p(req, res, routes, debug, step);
+                    //     } else {
+                    //         throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
+                    //     };
+                    //     break;
+                    // case 'reset-p':
+                    //     if(req.method === HttpMethod.GET) {
+                    //         await authController.reset_p(req, res, routes, debug, step);
+                    //     } else {
+                    //         throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
+                    //     };
+                    //     break;
+                    // case 'change-p':
+                    //     if(req.method === HttpMethod.GET) {
+                    //         await authController.change_p(req, res, routes, debug, step);
+                    //     } else {
+                    //         throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
+                    //     };
+                    //     break;
+                    // case 'get-current':
+                    //     if(req.method === HttpMethod.GET) {
+                    //         await authController.get_current(req, res, routes, debug, step);
+                    //     } else {
+                    //         throw new HttpError(StatusCode.MethodNotAllowed, 'plataform.route.ts / platformRouter()', 'Method Not Allowed', step);
+                    //     };
+                    //     break;
+                    // default:
+                    //     codeCase(res, 'MAIN_005', debug, step)
+                    //     break;
                 };
                 break;
             case 'private':
